@@ -1,17 +1,20 @@
 import React, { Component } from 'react';
-import { Coords } from '../resources/types';
+import { Coords } from '../utils/types';
+import CONF from '../resources/config.json';
 // import MapStyle from '../resources/map_style.json';
 import {
   Map,
   Marker,
   InfoWindow,
   ProvidedProps,
-  GoogleApiWrapper
+  GoogleApiWrapper,
+  MapProps
 } from 'google-maps-react';
 
 interface Props extends ProvidedProps {
-  markers?: Coords[]
-  center?: Coords
+  markers?: Array<{ coords: Coords, opacity: number }>;
+  center?: Coords;
+  opacities?: number[];
 }
 interface States {
   activeMarker?: any;
@@ -29,31 +32,41 @@ class GoogleMap extends Component<Props, States> {
   }
 
   onMarkerSelect = (props: any, marker: any, e: any) => {
-    // console.log(`Marker type: ${typeof (marker)}`);
-    // console.log(marker);
     this.setState({
       activeMarker: marker,
       showInfo: true
     });
   }
 
+  onMapLoad = (mapProps?: MapProps, map?: google.maps.Map) => {
+    const { markers: points } = this.props;
+    if (points && google.maps.visualization.HeatmapLayer)
+      new google.maps.visualization.HeatmapLayer({ data: points.map(x => x.coords) }).setMap(map!);
+    else
+      this.forceUpdate();
+
+    map!.setMapTypeId('terrain');
+
+    this.setState({ map: map as google.maps.Map })
+  }
+
   render() {
     const { showInfo, activeMarker: marker, map } = this.state;
-    const { markers: points, google } = this.props;
+    const { markers: points, google, center } = this.props;
 
     // define default center
-    let center: Coords = { lat: 45, lng: 45 }
+    let _center: Coords = center ? center : { lat: 45, lng: 45 };
 
     // find the center point among all points
     if (points) {
       let midX = 0;
       let midY = 0;
-      points.forEach(({ lat, lng }) => {
-        midX += lat;
-        midY += lng;
+      points.forEach(({ coords }) => {
+        midX += coords.lat;
+        midY += coords.lng;
       });
-      center.lat = midX / points.length;
-      center.lng = midY / points.length;
+      _center.lat = midX / points.length;
+      _center.lng = midY / points.length;
     }
 
     let infoWin = () => {
@@ -71,8 +84,6 @@ class GoogleMap extends Component<Props, States> {
             </big>
           </InfoWindow>
         );
-      } else {
-        return null;
       }
     }
 
@@ -80,18 +91,24 @@ class GoogleMap extends Component<Props, States> {
       <Map
         draggable
         ref={this.mapRef}
-        maxZoom={9}
+        // maxZoom={9}
         minZoom={4}
         zoom={4}
-        // styles={MapStyle}
-        onReady={(mapProps, map) => {
-          this.setState({ map: map as google.maps.Map })
-        }}
-        initialCenter={center}
+        scrollwheel={false}
+        disableDoubleClickZoom={false}
+        fullscreenControl={false}
+        onReady={this.onMapLoad}
+        initialCenter={_center}
         google={google}
       >
-        {points && points.map((pos, i) => (
-          <Marker icon={require('../resources/high.png')} key={i} clickable onClick={this.onMarkerSelect} position={pos} />
+        {points && points.map(({ coords, opacity }, i) => (
+          <Marker
+            key={i}
+            clickable
+            animation={google.maps.Animation.DROP}
+            icon={require('../resources/marker_2.png')}
+            onClick={this.onMarkerSelect} position={coords}
+          />
         ))}
         {infoWin()}
       </Map>
@@ -100,5 +117,6 @@ class GoogleMap extends Component<Props, States> {
 }
 
 export default GoogleApiWrapper({
-  apiKey: 'GOOGLE MAPS KEY'
+  apiKey: CONF.google.key,
+  libraries: ['visualization']
 })(GoogleMap)

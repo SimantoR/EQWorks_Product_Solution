@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
-import { Coords } from '../resources/types';
+import { Coords } from '../utils/types';
+import CONF from '../resources/config.json';
 // import MapStyle from '../resources/map_style.json';
 import {
   Map,
@@ -98,5 +99,5 @@ class DataMap extends Component<Props, States> {
 }
 
 export default GoogleApiWrapper({
-  apiKey: 'GOOGLE MAPS KEY'
+  apiKey: CONF.google.key
 })(DataMap)
