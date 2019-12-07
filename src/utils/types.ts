@@ -1,3 +1,4 @@
+import 'googlemaps';
 export type PoiProps = {
   poi_id: number,
   name: string,
@@ -16,6 +17,28 @@ export type Coords = {
   lng: number
 }
 
+export type PoiType = {
+  poi_id: number,
+  name: string,
+  lat: number,
+  lon: number
+}
+
+export type EventType = {
+  date: string,
+  hour: number,
+  events: number,
+  poi_id: number
+}
+
+export type StatType = {
+  date: string,
+  hour: number,
+  impressions: number,
+  clicks: number,
+  revenue: number,
+  poi_id: number
+}
 
 export const MapStyle: google.maps.MapTypeStyle[] = [
   { elementType: 'geometry', stylers: [{ color: '#242f3e' }] },
