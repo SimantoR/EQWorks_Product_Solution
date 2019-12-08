@@ -8,6 +8,7 @@ import Scrollbars from 'react-custom-scrollbars';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './resources/site.css';
 import 'datejs';
+import HomePage from './pages/HomePage';
 
 interface States {
   poi?: PoiProps[];
@@ -22,18 +23,6 @@ export class App extends React.Component<any, States> {
   constructor(props: any) {
     super(props);
     this.state = {}
-  }
-
-  async componentDidMount() {
-    let events = await this.fetchEvents();
-    let pois = await this.fetchPOI();
-    this.setState({
-      events: events,
-      poi: pois
-    });
-    window.addEventListener('offline', () => {
-      console.log('You went offline');
-    });
   }
 
   navbar = () => {
@@ -59,12 +48,15 @@ export class App extends React.Component<any, States> {
                 <NavLink to="/map" className="nav-link">Map</NavLink>
               </li>
               <li className="nav-item">
+                <NavLink to="/stats" className="nav-link">Stats</NavLink>
+              </li>
+              <li className="nav-item">
                 <NavLink to="/events" className="nav-link">Events</NavLink>
               </li>
               <li className="nav-item dropdown d-none d-sm-block">
-                <a className="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <button className="btn btn-link nav-link dropdown-toggle" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                   <i className='fas fa-cogs' />
-                </a>
+                </button>
                 <div className="dropdown-menu" aria-labelledby="navbarDropdown">
                   <a className="dropdown-item w-100 d-flex px-2" href="#">
                     <div className="w-25 p-0"><i className="fas fa-cogs" /></div>
@@ -112,33 +104,6 @@ export class App extends React.Component<any, States> {
     return event_list;
   }
 
-  dataTable = () => {
-    const { events } = this.state;
-    if (!events)
-      return null
-    return (
-      <table className="table table-bordered table-striped container">
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th className="text-center">Hour</th>
-            <th className="text-center">Events</th>
-          </tr>
-        </thead>
-        <tbody>
-          {events.map((x, i) => (
-            <tr key={i}>
-              {console.log(typeof (x.date))}
-              <td>{new Date(x.date).toString('ddd, MMM d, yyyy hh:mm tt')}</td>
-              <td className="text-center">{x.hour}</td>
-              <td className="text-center">{x.events}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    );
-  }
-
   render() {
     const { poi } = this.state;
     let map: JSX.Element | null = null;
@@ -155,7 +120,6 @@ export class App extends React.Component<any, States> {
         </div>
       );
     }
-
     return (
       <div className="w-100 d-flex flex-column position-relative" style={{ height: "100vh" }}>
         <div className="w-100" style={{ position: 'sticky', top: 0, zIndex: 1 }}>
@@ -163,19 +127,22 @@ export class App extends React.Component<any, States> {
         </div>
         <Scrollbars className="w-100 h-100">
           <Switch>
+            <Route exact path="/" component={HomePage} />
             <Route path="/map">
               <div className="w-100 h-100 position-relative">
                 {map}
               </div>
             </Route>
-            <Route path="/stats">
-              <StatsPage />
-            </Route>
-            <Route path="/events">
-              <EventsPage />
-            </Route>
+            <Route path="/stats" component={StatsPage} />
+            <Route path="/events" component={EventsPage} />
             <Route>
-              <this.dataTable />
+              <div className="w-100 h-100 d-flex justify-content-center align-items-center">
+                <div className="card shadow shadow-lg">
+                  <big className="card-body font-noto">
+                    Sorry we couldn't find the page
+                  </big>
+                </div>
+              </div>
             </Route>
           </Switch>
         </Scrollbars>
