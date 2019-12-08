@@ -32,7 +32,7 @@ export type EventType = {
 }
 
 export type StatType = {
-  date: string,
+  date: string | Date,
   hour: number,
   impressions: number,
   clicks: number,

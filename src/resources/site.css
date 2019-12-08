@@ -11,3 +11,34 @@
 .map {
     height: calc(100% - 50px);
 }
+
+.scale-hover {
+    transition: transform 400ms;
+}
+.scale-hover:hover {
+    transform: scale(1.2);
+}
+
+.table.table-centered th,
+.table.table-centered td {
+    text-align: center;
+}
+
+.table.table-centered th {
+    border: 0;
+}
+
+.align-right>td {
+    text-align: right;
+}
+
+.btn-group.btn-group-toolbar .btn {
+    border:1px solid rgb(219, 219, 219);
+    border-radius: 0;
+    margin-right: 5px;
+}
+
+.pointer {
+    cursor: pointer;
+    user-select: none;
+}
