@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@google/markerclustererplus": "^3.0.6",
     "@types/datejs": "0.0.30",
     "@types/google-maps-react": "^2.0.3",
     "@types/jest": "24.0.23",
@@ -23,7 +24,7 @@
     "react-custom-scrollbars": "^4.2.1",
     "react-dom": "^16.12.0",
     "react-router-dom": "^5.1.2",
-    "react-scripts": "3.2.0",
+    "react-scripts": "^3.3.0",
     "react-spinners": "^0.6.1",
     "typescript": "3.7.2"
   },

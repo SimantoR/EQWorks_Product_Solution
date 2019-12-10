@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { Coords } from '../utils/types';
 import CONF from '../resources/config.json';
+import MarkerClusterer from '@google/markerclustererplus';
 import {
   Map,
   Marker,
@@ -41,12 +42,25 @@ class GoogleMap extends Component<Props, States> {
 
   onMapLoad = (mapProps?: MapProps, map?: google.maps.Map) => {
     const { markers: points } = this.props;
-    if (points && google.maps.visualization)
-      new google.maps.visualization.HeatmapLayer({ data: points.map(x => x.coords) }).setMap(map!);
-    else
-      this.forceUpdate();
 
-    map!.setMapTypeId('terrain');
+    if (!points || !map)
+      return;
+
+    map.setMapTypeId('terrain');
+
+    let _markers: google.maps.Marker[] = [];
+
+    let _customIcon = require("../resources/marker.png");
+    points.map(x => {
+      _markers.push(
+        new google.maps.Marker({ position: x.coords, opacity: x.opacity, icon: _customIcon, clickable: false })
+      );
+    });
+
+    let _clusterer = new MarkerClusterer(map, _markers, {
+      imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m',
+      maxZoom: 8
+    });
 
     this.setState({ map: map as google.maps.Map })
   }
@@ -92,7 +106,7 @@ class GoogleMap extends Component<Props, States> {
       <Map
         draggable
         ref={this.mapRef}
-        // maxZoom={9}
+        maxZoom={10}
         minZoom={4}
         zoom={4}
         styles={mapStyle}
@@ -103,7 +117,7 @@ class GoogleMap extends Component<Props, States> {
         initialCenter={_center}
         google={google}
       >
-        {points && points.map(({ coords, opacity }, i) => (
+        {/* {points && points.map(({ coords, opacity }, i) => (
           <Marker
             key={i}
             clickable
@@ -112,7 +126,7 @@ class GoogleMap extends Component<Props, States> {
             onClick={this.onMarkerSelect} position={coords}
           />
         ))}
-        {infoWin()}
+        {infoWin()} */}
       </Map>
     );
   }
