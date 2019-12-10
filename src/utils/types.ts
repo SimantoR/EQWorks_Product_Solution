@@ -31,13 +31,16 @@ export type EventType = {
   poi_id: number
 }
 
-export type StatType = {
-  date: string | Date,
-  hour: number,
-  impressions: number,
-  clicks: number,
-  revenue: number,
-  poi_id: number
+export interface Stat {
+  date: string | Date;
+  impressions: number;
+  clicks: number;
+  revenue: number;
+  poi_id: number;
+}
+
+export interface HourlyStat extends Stat {
+  hour: number;
 }
 
 export const MapStyle: google.maps.MapTypeStyle[] = [

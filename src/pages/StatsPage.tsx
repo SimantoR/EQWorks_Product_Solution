@@ -1,10 +1,11 @@
 import React, { useState, Component } from 'react';
-import { StatType } from '../utils/types';
+import { HourlyStat } from '../utils/types';
 import BarLoader from 'react-spinners/BarLoader';
 import 'linqify';
+import GoogleMap from '../components/GoogleMap';
 
 interface States {
-  rawData?: StatType[];
+  rawData?: HourlyStat[];
   filteredData?: Array<{
     date: Date,
     clicks: number
@@ -12,6 +13,7 @@ interface States {
     revenue: number
   }>;
   viewIndexes: boolean[];
+  page: number
 }
 
 function commafy(num: number) {
@@ -29,7 +31,8 @@ class StatsPage extends Component<any, States> {
   constructor(props: any) {
     super(props);
     this.state = {
-      viewIndexes: []
+      viewIndexes: [],
+      page: 0
     }
   }
 
@@ -37,26 +40,22 @@ class StatsPage extends Component<any, States> {
     this.fetchData();
   }
 
-  fetchData = async (limit?: number) => {
+  fetchData = async (page = 1) => {
     console.log(">> Fetching Data <<");
     let response = await fetch(
-      'http://localhost:5555/stats/hourly'
+      `http://localhost:5555/stats/hourly/200/${page}`
     );
 
     if (response.status !== 200)
       return;
 
-    let stats: StatType[];
+    let stats: HourlyStat[];
     try {
       stats = JSON.parse(await response.text());
     } catch (ex) {
       console.log(ex);
       return;
     }
-
-    // set limit of limit is provided
-    if (limit)
-      stats = stats.Take(limit).ToArray();
 
     // group data by date
     let filteredData = stats.GroupBy(x => x.date).Distinct().Select(group => ({
@@ -73,15 +72,18 @@ class StatsPage extends Component<any, States> {
       x.revenue = parseFloat(x.revenue.toString());
     });
 
+    console.log(`>> Fetched ${stats.length}`);
+
     this.setState({
       rawData: stats,
       filteredData: filteredData,
-      viewIndexes: new Array<boolean>(filteredData.length).fill(false)
+      viewIndexes: new Array<boolean>(filteredData.length).fill(false),
+      page: page
     });
   }
 
   render() {
-    const { rawData, filteredData, viewIndexes } = this.state;
+    const { rawData, filteredData, viewIndexes, page } = this.state;
     if (!rawData || !filteredData) {
       return (
         <div className="w-100 h-100 d-flex flex-column justify-content-center align-items-center">
@@ -91,21 +93,43 @@ class StatsPage extends Component<any, States> {
       );
     }
 
+    let onNext = () => {
+      this.fetchData(page + 1);
+    }
+    let onPrev = () => {
+      if (page > 1)
+        this.fetchData(page - 1);
+    }
+
+    let showAggregate = () => {
+      if (viewIndexes.Any(x => x === true)) {
+        // TODO: create an intensity map based on impressions
+        return <GoogleMap />
+      }
+    }
+
     return (
-      <div className="w-100 h-100 p-3">
-        <div className="btn-group btn-group-toolbar">
-          {/* <button className="btn btn-light">View Raw</button> */}
-          <button className="btn btn-light" title="Copy"><i className="far fa-clipboard" /></button>
-          <button className="btn btn-light" title="Save as Excel" onClick={e => {
-            if (window.confirm('Save as excel?')) {
-              // TODO: prompt save file on confirm
-            }
-          }}>
-            <i className="fas fa-file-excel" />
-          </button>
+      <div className="w-100 h-100">
+        <div className="d-flex m-2">
+          <div className="btn-group btn-group-lg btn-group-toolbar">
+            {/* <button className="btn btn-light">View Raw</button> */}
+            <button className="btn btn-light" title="Copy"><i className="far fa-clipboard" /></button>
+            <button className="btn btn-light" title="Save as Excel" onClick={e => {
+              if (window.confirm('Save as excel?')) {
+                // TODO: prompt save file on confirm
+              }
+            }}>
+              <i className="fas fa-file-excel" />
+            </button>
+          </div>
+          <div className="ml-auto btn-group btn-group-lg btn-group-toolbar">
+            <button className="btn btn-light" onClick={onPrev}><i className="fas fa-arrow-circle-left" /></button>
+            <div className="align-self-center pr-2 pl-1">Page: {page}</div>
+            <button className="btn btn-light" onClick={onNext}><i className="fas fa-arrow-circle-right" /></button>
+          </div>
         </div>
-        <table className="table border table-hover table-centered mt-2">
-          <thead className="shadow" style={{ position: 'sticky', top: 0 }}>
+        <table className="table border table-hover table-centered mb-0">
+          <thead className="shadow bg-white" style={{ position: 'sticky', top: 0 }}>
             <tr>
               <th>
                 View All{' '}
@@ -141,6 +165,9 @@ class StatsPage extends Component<any, States> {
             ))}
           </tbody>
         </table>
+        <div className="map">
+          <GoogleMap center={{ lat: 45, lng: -90 }} />
+        </div>
       </div>
     )
   }

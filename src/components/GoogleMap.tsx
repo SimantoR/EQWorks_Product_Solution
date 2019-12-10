@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import { Coords } from '../utils/types';
 import CONF from '../resources/config.json';
-// import MapStyle from '../resources/map_style.json';
 import {
   Map,
   Marker,
@@ -10,6 +9,8 @@ import {
   GoogleApiWrapper,
   MapProps
 } from 'google-maps-react';
+
+const mapStyle: google.maps.MapTypeStyle[] = require('../resources/map_style.json');
 
 interface Props extends ProvidedProps {
   markers?: Array<{ coords: Coords, opacity: number }>;
@@ -40,7 +41,7 @@ class GoogleMap extends Component<Props, States> {
 
   onMapLoad = (mapProps?: MapProps, map?: google.maps.Map) => {
     const { markers: points } = this.props;
-    if (points && google.maps.visualization.HeatmapLayer)
+    if (points && google.maps.visualization)
       new google.maps.visualization.HeatmapLayer({ data: points.map(x => x.coords) }).setMap(map!);
     else
       this.forceUpdate();
@@ -94,6 +95,7 @@ class GoogleMap extends Component<Props, States> {
         // maxZoom={9}
         minZoom={4}
         zoom={4}
+        styles={mapStyle}
         scrollwheel={false}
         disableDoubleClickZoom={false}
         fullscreenControl={false}

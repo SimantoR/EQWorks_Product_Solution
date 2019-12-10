@@ -56,7 +56,7 @@ class EventsPage extends Component<any, States> {
 
   processData = async () => {
     // two api calls started to save time
-    const event_promise = fetch('http://localhost:5555/events/daily');
+    const event_promise = fetch('http://localhost:5555/events/daily/100');
     const poi_promise = fetch('http://localhost:5555/poi');
 
     // wait on both calls to finish and get their responses
@@ -83,7 +83,7 @@ class EventsPage extends Component<any, States> {
       eventCountMap[i] = eventList.Where((x) => x.poi_id === poi_id).Select(x => x.events).Sum();
     }
     // get highest events in any location
-    let maxEventCount = Math.max(...eventCountMap);
+    let maxEventCount = eventCountMap.Max();
     let intensityMap = new Array<_MarkerProps>(poiArray.length);
 
     for (let i = 0; i < poiArray.length; i++) {
@@ -120,9 +120,9 @@ class EventsPage extends Component<any, States> {
     return (
       <div className="w-100 h-100 position-relative">
         <div className="position-relative mx-5 h-auto mt-4">
-          <Scrollbars className="w-100 h-100" style={{ minHeight: '410px' }}>
-            <div className="d-flex w-100">
-              <table className="table table-hover border w-50">
+          <div className="d-flex w-100">
+            <Scrollbars className="w-100 h-100" style={{ minHeight: '410px' }}>
+              <table className="table table-hover border w-100">
                 <thead className="bg-dark text-white">
                   <tr>
                     <th>
@@ -145,7 +145,7 @@ class EventsPage extends Component<any, States> {
                     <th>Location (Lat, Lon)</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody style={{ cursor: "pointer" }}>
                   {events!.ToArray().map((e, i) => (
                     <tr key={i} style={{ userSelect: "none" }}
                       onClick={(e) => {
@@ -172,22 +172,22 @@ class EventsPage extends Component<any, States> {
                   ))}
                 </tbody>
               </table>
-              <div className="w-50 bg-white">
-                <LineChart
-                  data={{
-                    labels: ['Jan', 'Feb', 'March', 'April', 'May', 'June', 'July', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'],
-                    datasets: [{
-                      label: '2019',
-                      data: [20, 18, 21, 22, 20, 18, 21, 22, 20, 18, 21, 22],
-                    }, {
-                      label: '2018',
-                      data: [19, 16, 20, 20, 19, 16, 20, 20, 19, 16, 20, 20],
-                    }]
-                  }}
-                />
-              </div>
+            </Scrollbars>
+            <div className="w-100 bg-white" style={{ maxHeight: "50vh" }}>
+              <LineChart
+                data={{
+                  labels: ['Jan', 'Feb', 'March', 'April', 'May', 'June', 'July', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'],
+                  datasets: [{
+                    label: '2019',
+                    data: [20, 18, 21, 22, 20, 18, 21, 22, 20, 18, 21, 22],
+                  }, {
+                    label: '2018',
+                    data: [19, 16, 20, 20, 19, 16, 20, 20, 19, 16, 20, 20],
+                  }]
+                }}
+              />
             </div>
-          </Scrollbars>
+          </div>
         </div>
         <div className="position-relative h-100" style={{ minHeight: 'calc(100vh - 55px)' }}>
           <GoogleMap center={{ lat: 45, lng: 45 }} markers={intensityMap} />
