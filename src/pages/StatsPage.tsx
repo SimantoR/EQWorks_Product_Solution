@@ -1,30 +1,18 @@
 import React, { useState, Component } from 'react';
-import { HourlyStat } from '../utils/types';
+import { HourlyStat, Stat } from '../utils/types';
 import BarLoader from 'react-spinners/BarLoader';
-import 'linqify';
+import { LineChart, LineChartProps, BarChart } from '../components/chart-js';
 import GoogleMap from '../components/GoogleMap';
+import Fuse, { FuseOptions } from 'fuse.js';
+import { commafy } from '../utils/processor';
+import 'linqify';
 
 interface States {
-  rawData?: HourlyStat[];
-  filteredData?: Array<{
-    date: Date,
-    clicks: number
-    impressions: number
-    revenue: number
-  }>;
-  viewIndexes: boolean[];
+  rawData?: HourlyStat[]
+  filteredData?: Stat[]
+  viewIndexes: boolean[]
   page: number
-}
-
-function commafy(num: number) {
-  var str = num.toString().split('.');
-  if (str[0].length >= 4) {
-    str[0] = str[0].replace(/(\d)(?=(\d{3})+$)/g, '$1,');
-  }
-  if (str[1] && str[1].length >= 4) {
-    str[1] = str[1].replace(/(\d{3})/g, '$1 ');
-  }
-  return str.join('.');
+  search?: Fuse<Stat, FuseOptions<Stat>>
 }
 
 class StatsPage extends Component<any, States> {
@@ -37,10 +25,10 @@ class StatsPage extends Component<any, States> {
   }
 
   componentDidMount() {
-    this.fetchData();
+    this.processData();
   }
 
-  fetchData = async (page = 1) => {
+  processData = async (page = 1) => {
     console.log(">> Fetching Data <<");
     let response = await fetch(
       `http://localhost:5555/stats/hourly/200/${page}`
@@ -57,29 +45,39 @@ class StatsPage extends Component<any, States> {
       return;
     }
 
-    // group data by date
-    let filteredData = stats.GroupBy(x => x.date).Distinct().Select(group => ({
-      date: new Date(group.Key),
-      clicks: group.Sum(x => x.clicks),
-      impressions: group.Sum(x => x.impressions),
-      revenue: group.Sum(x => parseFloat(x.revenue.toString()))
-    })).ToArray();
+    let _response = await fetch(
+      `http://localhost:5555/stats/daily/10/${page}`
+    );
 
-    // convert date string to date object
-    // for some reason revenue remains string and not number after JSON convert
-    stats.forEach((x, i) => {
-      x.date = new Date(x.date);
+    let filteredData: Stat[] = JSON.parse(await _response.text());
+    filteredData.ForEach(x => {
       x.revenue = parseFloat(x.revenue.toString());
-    });
+    })
 
-    console.log(`>> Fetched ${stats.length}`);
+    stats.forEach((x, i) => {
+      x.revenue = parseFloat(x.revenue.toString());
+    })
+
+    console.log(`>> Fetched ${stats.length}`)
 
     this.setState({
       rawData: stats,
       filteredData: filteredData,
       viewIndexes: new Array<boolean>(filteredData.length).fill(false),
-      page: page
+      page: page,
+      search: new Fuse(filteredData.Select(x => {
+        return { ...x, ...{ date: new Date(x.date).toString("ddd") } }
+      }).ToArray(), { keys: ['date'] })
     });
+  }
+
+  pagination = (op: '+' | '-') => {
+    const { page } = this.state;
+    if (op === '+') {
+      this.processData(page + 1);
+    } else if (this.state.page > 1) {
+      this.processData(page - 1);
+    }
   }
 
   render() {
@@ -93,43 +91,15 @@ class StatsPage extends Component<any, States> {
       );
     }
 
-    let onNext = () => {
-      this.fetchData(page + 1);
-    }
-    let onPrev = () => {
-      if (page > 1)
-        this.fetchData(page - 1);
-    }
+    let onNext = () => this.pagination('+');
+    let onPrev = () => this.pagination('-');
 
-    let showAggregate = () => {
-      if (viewIndexes.Any(x => x === true)) {
-        // TODO: create an intensity map based on impressions
-        return <GoogleMap />
-      }
-    }
+    console.log(this.state.search!.search('mon'))
 
     return (
       <div className="w-100 h-100">
-        <div className="d-flex m-2">
-          <div className="btn-group btn-group-lg btn-group-toolbar">
-            {/* <button className="btn btn-light">View Raw</button> */}
-            <button className="btn btn-light" title="Copy"><i className="far fa-clipboard" /></button>
-            <button className="btn btn-light" title="Save as Excel" onClick={e => {
-              if (window.confirm('Save as excel?')) {
-                // TODO: prompt save file on confirm
-              }
-            }}>
-              <i className="fas fa-file-excel" />
-            </button>
-          </div>
-          <div className="ml-auto btn-group btn-group-lg btn-group-toolbar">
-            <button className="btn btn-light" onClick={onPrev}><i className="fas fa-arrow-circle-left" /></button>
-            <div className="align-self-center pr-2 pl-1">Page: {page}</div>
-            <button className="btn btn-light" onClick={onNext}><i className="fas fa-arrow-circle-right" /></button>
-          </div>
-        </div>
         <table className="table border table-hover table-centered mb-0">
-          <thead className="shadow bg-white" style={{ position: 'sticky', top: 0 }}>
+          <thead className="shadow-bottom bg-white">
             <tr>
               <th>
                 View All{' '}
@@ -148,7 +118,10 @@ class StatsPage extends Component<any, States> {
           </thead>
           <tbody>
             {filteredData.map((x, i) => (
-              <tr key={i} className="pointer font-noto" >
+              <tr key={i} className="pointer font-noto" onClick={e => {
+                viewIndexes[i] = !viewIndexes[i]
+                this.setState({ viewIndexes: viewIndexes })
+              }} >
                 <td>
                   <input type="checkbox" checked={viewIndexes[i]}
                     onChange={e => {
@@ -157,7 +130,7 @@ class StatsPage extends Component<any, States> {
                     }}
                   />
                 </td>
-                <td>{(x.date as Date).toString('MMMM d, yyyy')}</td>
+                <td>{new Date(x.date).toString('MMMM d, yyyy')}</td>
                 <td>{commafy(x.impressions)}</td>
                 <td>{x.clicks}</td>
                 <td className="text-right">{commafy(parseFloat(x.revenue.toFixed(2)))}</td>
@@ -165,6 +138,59 @@ class StatsPage extends Component<any, States> {
             ))}
           </tbody>
         </table>
+        <div className="d-flex m-2">
+          <div className="btn-group btn-group-lg btn-group-toolbar">
+            {/* <button className="btn btn-light">View Raw</button> */}
+            <button className="btn btn-light" title="Copy"><i className="far fa-clipboard" /></button>
+            <button className="btn btn-light" title="Save as Excel" onClick={e => {
+              if (window.confirm('Save as excel?')) {
+                // TODO: prompt save file on confirm
+              }
+            }}>
+              <i className="fas fa-file-excel" />
+            </button>
+          </div>
+          <div className="ml-auto btn-group btn-group-lg btn-group-toolbar">
+            <button className="btn btn-light" onClick={onPrev}><i className="fas fa-arrow-circle-left" /></button>
+            <div className="align-self-center pr-2 pl-1">Page: {page}</div>
+            <button className="btn btn-light" onClick={onNext}><i className="fas fa-arrow-circle-right" /></button>
+          </div>
+        </div>
+        <div className="w-100 d-flex flex-agile">
+          <div className="w-100" style={{ height: '40vh' }}>
+            <LineChart
+              data={{
+                labels: filteredData.map(x => new Date(x.date).toString("dd MMM")),
+                datasets: [{
+                  label: "Clicks",
+                  data: filteredData.GroupBy(x => x.date.toString()).Distinct().Select(x => x.Sum(x => x.clicks)).ToArray()
+                }]
+              }}
+            />
+          </div>
+          <div className="w-100" style={{ height: '40vh' }}>
+            <LineChart
+              data={{
+                labels: filteredData.map(x => new Date(x.date).toString("dd MMM")),
+                datasets: [{
+                  label: 'Impressions',
+                  data: filteredData.GroupBy(x => x.date.toString()).Distinct().Select(x => x.Sum(x => x.impressions)).ToArray()
+                }]
+              }}
+            />
+          </div>
+          <div className="w-100" style={{ height: '40vh' }}>
+            <LineChart
+              data={{
+                labels: filteredData.map(x => new Date(x.date).toString("dd MMM")),
+                datasets: [{
+                  label: 'Revenue',
+                  data: filteredData.GroupBy(x => x.date.toString()).Distinct().Select(x => x.Sum(x => x.revenue)).ToArray()
+                }]
+              }}
+            />
+          </div>
+        </div>
         <div className="map">
           <GoogleMap center={{ lat: 45, lng: -90 }} />
         </div>

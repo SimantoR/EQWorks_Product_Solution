@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { Coords } from '../utils/types';
 import CONF from '../resources/config.json';
+import { lerpColor } from '../utils/processor';
 import MarkerClusterer from '@google/markerclustererplus';
 import {
   Map,
@@ -18,6 +19,7 @@ interface Props extends ProvidedProps {
   center?: Coords;
   opacities?: number[];
 }
+
 interface States {
   activeMarker?: any;
   showInfo: boolean;
@@ -43,17 +45,29 @@ class GoogleMap extends Component<Props, States> {
   onMapLoad = (mapProps?: MapProps, map?: google.maps.Map) => {
     const { markers: points } = this.props;
 
+    map!.setMapTypeId("terrain");
+
     if (!points || !map)
       return;
 
-    map.setMapTypeId('terrain');
-
     let _markers: google.maps.Marker[] = [];
 
-    let _customIcon = require("../resources/marker.png");
+    let getIcon = (v: number) => {
+      return {
+        path: "M-20,0a20,20 0 1,0 40,0a20,20 0 1,0 -40,0",
+        fillColor: lerpColor('#FF0000', '#55f27f', v),
+        // fillOpacity: v < 0.7 ? 0.7 : v,
+        fillOpacity: 0.8,
+        anchor: new google.maps.Point(0, 0),
+        strokeWeight: 0,
+        scale: 1
+      }
+    }
+
     points.map(x => {
+      let _color = lerpColor('#FF0000', '#55f27f', x.opacity);
       _markers.push(
-        new google.maps.Marker({ position: x.coords, opacity: x.opacity, icon: _customIcon, clickable: false })
+        new google.maps.Marker({ position: x.coords, opacity: x.opacity, icon: getIcon(x.opacity), clickable: false })
       );
     });
 

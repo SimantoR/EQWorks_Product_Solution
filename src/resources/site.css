@@ -1,5 +1,4 @@
 @import url('https://fonts.googleapis.com/css?family=Noto+Sans+JP|Ubuntu+Mono&display=swap');
-
 .font-noto {
     font-family: 'Noto Sans JP', sans-serif;
 }
@@ -9,18 +8,19 @@
 }
 
 .map {
-    height: calc(100% - 50px);
+    height: calc(100% - 55px);
+    width: 100%;
 }
 
 .scale-hover {
     transition: transform 400ms;
 }
+
 .scale-hover:hover {
     transform: scale(1.2);
 }
 
-.table.table-centered th,
-.table.table-centered td {
+.table.table-centered th, .table.table-centered td {
     text-align: center;
 }
 
@@ -33,12 +33,30 @@
 }
 
 .btn-group.btn-group-toolbar .btn {
-    border:1px solid rgb(219, 219, 219);
+    border: 1px solid rgb(219, 219, 219);
     border-radius: 0;
     margin-right: 5px;
+}
+
+.btn-light:hover {
+    background: linear-gradient(180deg, #e3e3e3, #ffffff);
 }
 
 .pointer {
     cursor: pointer;
     user-select: none;
+}
+
+.shadow-bottom {
+    box-shadow: 0 2px 2px 2px rgba(60, 64, 67, 0.4);
+}
+
+.flex-agile {
+    flex-direction: column;
+}
+
+@media (min-width: 991.98px) {
+    .flex-agile {
+        flex-direction: row;
+    }
 }

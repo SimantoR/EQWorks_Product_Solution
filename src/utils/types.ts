@@ -1,30 +1,30 @@
 import 'googlemaps';
-export type PoiProps = {
+export interface PoiProps {
   poi_id: number,
   name: string,
   lat: number,
   lon: number
 }
 
-export type EventProp = {
-  date: Date | string,
-  hour: number,
-  events: number
+export interface EventProp {
+  date: Date | string;
+  hour: number;
+  events: number;
 }
 
-export type Coords = {
+export interface Coords {
   lat: number,
   lng: number
 }
 
-export type PoiType = {
+export interface PoiType {
   poi_id: number,
   name: string,
   lat: number,
   lon: number
 }
 
-export type EventType = {
+export interface EventType {
   date: string,
   hour: number,
   events: number,
@@ -32,15 +32,15 @@ export type EventType = {
 }
 
 export interface Stat {
-  date: string | Date;
-  impressions: number;
-  clicks: number;
-  revenue: number;
-  poi_id: number;
+  date: string
+  impressions: number
+  clicks: number
+  revenue: number
 }
 
 export interface HourlyStat extends Stat {
   hour: number;
+  poi_id: number;
 }
 
 export const MapStyle: google.maps.MapTypeStyle[] = [
