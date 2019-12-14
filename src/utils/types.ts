@@ -26,9 +26,9 @@ export interface PoiType {
 
 export interface EventType {
   date: string,
-  hour: number,
-  events: number,
-  poi_id: number
+  hour?: number,
+  events?: number,
+  poi_id?: number
 }
 
 export interface Stat {

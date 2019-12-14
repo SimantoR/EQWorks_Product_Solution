@@ -3,12 +3,12 @@ import { Switch, Route, NavLink } from 'react-router-dom';
 import DataMap from './components/DataMap';
 import StatsPage from './pages/StatsPage';
 import EventsPage from './pages/EventsPage';
-import { PoiProps, EventProp, Coords } from './utils/types';
 import Scrollbars from 'react-custom-scrollbars';
+import HomePage from './pages/HomePage';
+import { PoiProps, EventProp, Coords } from './utils/types';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './resources/site.css';
 import 'datejs';
-import HomePage from './pages/HomePage';
 
 interface States {
   poi?: PoiProps[];
@@ -28,13 +28,13 @@ export class App extends React.Component<any, States> {
   navbar = () => {
     let navStyle: CSSProperties = {
       top: 0,
-      // position: 'absolute',
-      zIndex: 2
+      zIndex: 2,
+      userSelect: "none"
     }
     return (
-      <div className="w-100 bg-dark shadow font-noto">
+      <div className="w-100 bg-dark shadow-bottom font-noto">
         <nav className="navbar navbar-expand-lg navbar-dark container w-100" style={navStyle}>
-          <span className="navbar-brand">Data Visualizer</span>
+          <span className="navbar-brand" style={{ userSelect: "none" }}>Data Visualizer</span>
           <button className="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
             <span className="navbar-toggler-icon"></span>
           </button>
@@ -44,9 +44,9 @@ export class App extends React.Component<any, States> {
               <li className="nav-item">
                 <NavLink exact to="/" className="nav-link">Home</NavLink>
               </li>
-              <li className="nav-item">
+              {/* <li className="nav-item">
                 <NavLink to="/map" className="nav-link">Map</NavLink>
-              </li>
+              </li> */}
               <li className="nav-item">
                 <NavLink to="/stats" className="nav-link">Stats</NavLink>
               </li>
@@ -57,9 +57,9 @@ export class App extends React.Component<any, States> {
                 <button className="btn btn-link nav-link dropdown-toggle" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                   <i className='fas fa-cogs' />
                 </button>
-                <div className="dropdown-menu" aria-labelledby="navbarDropdown">
+                <div className="dropdown-menu shadow" aria-labelledby="navbarDropdown">
                   <a className="dropdown-item w-100 d-flex px-2" href="#">
-                    <div className="w-25 p-0"><i className="fas fa-cogs" /></div>
+                    <div className="w-25 p-0"><i className="fas fa-key" /></div>
                     <div>Auth Keys</div>
                   </a>
                   <a className="dropdown-item w-100 d-flex px-2" href="#">
@@ -74,10 +74,10 @@ export class App extends React.Component<any, States> {
                 </div>
               </li>
             </ul>
-            <form className="form-inline d-none d-sm-block my-2 my-lg-0">
+            {/* <form className="form-inline d-none d-sm-block my-2 my-lg-0">
               <input className="form-control mr-sm-2 rounded-pill border-0" type="search" placeholder="Query" aria-label="Search" />
               <button className="btn btn-outline-light rounded-pill my-2 my-sm-0" type="submit">Search</button>
-            </form>
+            </form> */}
           </div>
         </nav>
       </div>
@@ -125,7 +125,7 @@ export class App extends React.Component<any, States> {
         <div className="w-100" style={{ position: 'sticky', top: 0, zIndex: 1 }}>
           <this.navbar />
         </div>
-        <Scrollbars className="w-100 h-100">
+        <Scrollbars className="w-100 h-100" autoHide autoHideTimeout={500} autoHideDuration={700}>
           <Switch>
             <Route exact path="/" component={HomePage} />
             <Route path="/map">
