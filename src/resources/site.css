@@ -32,6 +32,19 @@
     text-align: right;
 }
 
+.btn.btn-white {
+    background-color: white;
+    box-shadow: 0 0 3px #b8b8b8;
+    border-color: transparent;
+    font-weight: 500;
+    border-radius: 2px;
+    transition: background-color 0ms;
+}
+
+.btn.btn.btn-white:hover {
+    background-color: #e2e2e2;
+}
+
 .btn-group.btn-group-toolbar .btn {
     border: 1px solid rgb(219, 219, 219);
     border-radius: 0;
@@ -53,6 +66,10 @@
 
 .flex-agile {
     flex-direction: column;
+}
+
+.shadow {
+    box-shadow: 0 0 5px #b8b8b8 !important;
 }
 
 @media (min-width: 991.98px) {

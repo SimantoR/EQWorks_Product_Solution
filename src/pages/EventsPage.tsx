@@ -299,7 +299,7 @@ class EventsPage extends Component<any, States> {
 
   render() {
     const { intensityMap, filteredData, sortType } = this.state;
-    
+
     const isLoaded = intensityMap && filteredData;
 
     if (!isLoaded) {
@@ -325,6 +325,7 @@ class EventsPage extends Component<any, States> {
         return;
       }
       let _filteredData = fuzzy.search(_searchFieldRef.current!.value);
+      _searchFieldRef.current!.value = "";
       this.sortDataset(sortType, _filteredData as EventType[]);
     }
 
@@ -356,8 +357,8 @@ class EventsPage extends Component<any, States> {
             </Scrollbars>
             <div className="d-flex justify-content-between mt-2">
               <div className="btn-group btn-group-toolbar">
-                <button className="btn btn-light" title="Copy"><i className="far fa-clipboard" /></button>
-                <button className="btn btn-light" title="Save as Excel" onClick={e => {
+                <button className="btn btn-white" title="Copy"><i className="far fa-clipboard" /></button>
+                <button className="btn btn-white" title="Save as Excel" onClick={e => {
                   if (window.confirm('Save as excel?')) {
                     // TODO: prompt save file on confirm
                   }
@@ -381,31 +382,38 @@ class EventsPage extends Component<any, States> {
               </div> */}
             </div>
           </div>
-          <div className="w-100 bg-white py-2" style={{ height: "50vh" }}>
-            <BarChart
-              data={{
-                labels: filteredData!.Select(x => {
-                  return new Date(x.date).toString(sortType === SortTypes.MONTH ? "MMM" : "MMM dd")
-                }).Distinct().ToArray(),
-                datasets: [{
-                  label: '2017',
-                  data: filteredData!.GroupBy(x => new Date(x.date).toString("MMM dd")).Distinct().Select(group => {
-                    const output = group.Sum(x => parseInt(x.events!.toString()));
-                    return output;
-                  }).ToArray()
-                }]
-              }}
-              options={{
-                title: {
-                  display: true,
-                  text: "Events",
-                  fontSize: 26
-                },
-                legend: {
-                  display: false
-                }
-              }}
-            />
+          <div className="w-100 bg-white p-3" style={{ height: "50vh" }}>
+            <div className="border shadow h-100">
+              <BarChart
+                data={{
+                  labels: filteredData!.Select(x => {
+                    if (sortType === SortTypes.MONTH)
+                      return x.date;
+                    else
+                      return new Date(x.date).toString("MMM dd");
+                  }).Distinct().ToArray(),
+                  datasets: [{
+                    label: '2017',
+                    data: filteredData!.GroupBy(x => x.date).Select(x => x.Sum(y => y.events!)).ToArray()
+                    // data: filteredData!.GroupBy(x => new Date(x.date).toString("MMM dd")).Distinct().Select(group => {
+                    //   const output = group.Sum(x => parseInt(x.events!.toString()));
+                    //   return output;
+                    // }).ToArray()
+                  }]
+                }}
+                options={{
+                  title: {
+                    display: true,
+                    text: "Events",
+                    fontSize: 26
+                  },
+                  legend: {
+                    display: false
+                  },
+                  animation: false
+                }}
+              />
+            </div>
           </div>
         </div>
         <div className="position-relative h-100" style={{ minHeight: 'calc(100vh - 55px)' }}>

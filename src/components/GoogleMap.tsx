@@ -13,7 +13,7 @@ import {
 const mapStyle: google.maps.MapTypeStyle[] = require('../resources/map_style.json');
 
 interface Props extends ProvidedProps {
-  markers?: Array<{ coords: Coords, opacity: number }>;
+  markers?: Array<{ coords: Coords, opacity: number, title?: string }>;
   center?: Coords;
   opacities?: number[];
 }
@@ -59,21 +59,30 @@ class GoogleMap extends Component<Props, States> {
       }
     }
 
+    let _infoWindow = new google.maps.InfoWindow();
+
     let _markers: google.maps.Marker[] = [];
+    
     points.forEach(x => {
       let _intensity = Math.pow(x.opacity, 2);
-      _markers.push(
-        new google.maps.Marker({
-          position: x.coords,
-          opacity: 1,
-          icon: getIcon(_intensity),
-          clickable: false,
-          label: { 
-            text: x.opacity.toFixed(2), 
-            color: "#ffffff",
-            fontWeight: "bold" } as google.maps.MarkerLabel
-        })
-      );
+      let _marker = new google.maps.Marker({
+        position: x.coords,
+        opacity: 1,
+        icon: getIcon(_intensity),
+        clickable: x.title ? true : false,
+        label: { 
+          text: x.opacity.toFixed(2), 
+          color: "#ffffff",
+          fontWeight: "bold" } as google.maps.MarkerLabel,
+        title: x.title && x.title
+      });
+
+      x.title && google.maps.event.addListener(_marker, 'click', function() {
+        _infoWindow.setContent(`<big class="big font-noto">${_marker.getTitle() as string}</big>`);
+        _infoWindow.open(map, _marker);
+      });
+
+      _markers.push(_marker);
     });
 
     new MarkerClusterer(map, _markers, {
